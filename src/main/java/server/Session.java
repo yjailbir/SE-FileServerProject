@@ -20,10 +20,10 @@ public class Session extends Thread{
                 DataInputStream input = new DataInputStream(socket.getInputStream());
                 DataOutputStream output  = new DataOutputStream(socket.getOutputStream());
                 ) {
-            JSONParser parser = new JSONParser();
-            FileReader JSONReader = new FileReader("src/main/java/server/files.json");
-            JSONObject filesData = (JSONObject) parser.parse(JSONReader);
-            JSONReader.close();
+//            JSONParser parser = new JSONParser();
+//            FileReader JSONReader = new FileReader("src/main/java/server/files.json");
+//            JSONObject filesData = (JSONObject) parser.parse(JSONReader);
+//            JSONReader.close();
             String receive = "";
             String path = "src/main/java/server/data/";
             byte[] fileInBytes = null;
@@ -39,7 +39,7 @@ public class Session extends Thread{
                             }
                             case "id" -> {
                                 receive = input.readUTF();
-                                fileInBytes = Files.readAllBytes(Path.of(path + filesData.get(receive)));
+                                fileInBytes = Files.readAllBytes(Path.of(path + Main.filesData.get(receive)));
                             }
                         }
                         output.writeUTF("200");
@@ -55,14 +55,14 @@ public class Session extends Thread{
                     fileInBytes = new byte[length];
                     input.readFully(fileInBytes, 0, fileInBytes.length);
                     receive = input.readUTF();
-                    if(!filesData.containsValue(receive)){
+                    if(!Main.filesData.containsValue(receive)){
                         BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(path + receive));
                         bufferedOutputStream.write(fileInBytes);
                         bufferedOutputStream.close();
                         output.writeUTF("200");
-                        filesData.put(filesData.size(), receive);
-                        Files.write(Path.of("src/main/java/server/files.json"), filesData.toJSONString().getBytes());
-                        output.writeUTF(String.valueOf(filesData.size() - 1));
+                        Main.filesData.put(String.valueOf(Main.filesData.size()), receive);
+                        //Files.write(Path.of("src/main/java/server/files.json"), Main.filesData.toJSONString().getBytes());
+                        output.writeUTF(String.valueOf(Main.filesData.size() - 1));
                     }
                     else {
                         output.writeUTF("404");
@@ -78,14 +78,14 @@ public class Session extends Thread{
                         }
                         case "id" -> {
                             receive = input.readUTF();
-                            file = new File(path + filesData.get(receive));
+                            file = new File(path + Main.filesData.get(receive));
                         }
                     }
                     assert file != null;
                     if(file.delete()){
                         output.writeUTF("200");
-                        filesData.remove(receive);
-                        Files.write(Path.of("src/main/java/server/files.json"), filesData.toJSONString().getBytes());
+                        Main.filesData.remove(receive);
+                        //Files.write(Path.of("src/main/java/server/files.json"), filesData.toJSONString().getBytes());
                     }
                     else
                         output.writeUTF("404");
@@ -93,7 +93,7 @@ public class Session extends Thread{
                 case "exit" -> Main.isItTimeToDisconnect = true;
             }
             socket.close();
-        } catch (IOException | ParseException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
